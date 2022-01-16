@@ -5,7 +5,7 @@ import ffmpeg
 import time
 import json
 
-AUDIO_SERVER = "pulse"
+AUDIO_DEVICE = "pulse"
 
 class AudioManager(threading.Thread):
     def __init__(self):
@@ -53,7 +53,7 @@ class AudioManager(threading.Thread):
             .output("pipe:", format="wav")
             .run_async(pipe_stdin=True, pipe_stdout=True, pipe_stderr=False)
         )
-        self.playerProcess = subprocess.Popen(f"aplay -q -t wav --fatal-errors -D {AUDIO_SERVER}".split(" "), 
+        self.playerProcess = subprocess.Popen(f"aplay -q -t wav --fatal-errors -D {AUDIO_DEVICE}".split(" "), 
             stdin=self.audioProcess.stdout)
 
     def run(self):

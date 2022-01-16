@@ -1,6 +1,8 @@
 import threading
 
+# import RPi.GPIO as GPIO
 import OPi.GPIO as GPIO
+
 from RPLCD import CharLCD
 import time
 import sys
@@ -13,6 +15,7 @@ PIN_RW = 3
 PIN_ENABLE = 7
 PIN_DATA = [12, 11, 8, 10]
 
+# Do not change unless you want to change the update routine as well 
 LCD_COLUMNS = 16
 LCD_ROWS = 2
 LCD_DOTSIZE = 8
@@ -35,10 +38,10 @@ class LCDManager(threading.Thread):
         self.start()
 
     def calcRowText(self, scrollText, offset=0):
-        if len(scrollText) < 16:
-            for a in range(0, 16-len(scrollText)):
+        if len(scrollText) < LCD_COLUMNS:
+            for a in range(0, LCD_COLUMNS-len(scrollText)):
                 scrollText += " "
-        line = scrollText[offset:offset+16]
+        line = scrollText[offset:offset+LCD_COLUMNS]
         return line
 
     def setUpper(self, newUpper):
@@ -56,10 +59,10 @@ class LCDManager(threading.Thread):
         self.lcd.write_string(currentLowerLine)
         if time.time() - self.startStopTimer > START_STOP_DELAY:
             self.offset += 1
-            if self.offset >= len(self.upperLine[self.currentIndex]) - 15:
+            if self.offset >= len(self.upperLine[self.currentIndex]) - (LCD_COLUMNS-1):
                 self.offset = 0
             
-            if self.offset == 0 or self.offset == len(self.upperLine[self.currentIndex]) - 16:
+            if self.offset == 0 or self.offset == len(self.upperLine[self.currentIndex]) - LCD_COLUMNS:
                 self.startStopTimer = time.time()
                 if self.offset == 0:
                     self.currentIndex += 1
@@ -68,4 +71,5 @@ class LCDManager(threading.Thread):
                 
     def run(self):
         while True:
+            # TODO: Add refresh delay.
             self.update()

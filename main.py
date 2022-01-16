@@ -3,7 +3,6 @@ from AudioManager import AudioManager
 from LcdManager import LCDManager
 
 import time
-from ffprobe import FFProbe
 from datetime import datetime
 
 class FloppyPlayer:
