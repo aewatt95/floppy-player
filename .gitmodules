@@ -1,0 +1,3 @@
+[submodule "Greaseweazle"]
+	path = Greaseweazle
+	url = https://github.com/keirf/Greaseweazle
