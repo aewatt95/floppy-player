@@ -69,7 +69,7 @@ class FloppyPlayer:
         print("-> PLAYING")
         self.lcd.lowerLine = [f"{str(datetime.now() - self.startTime).split('.')[0][3:]}        B:{(self.audio.buffer.qsize())}"]
         nextData = self.drive.getNextData()
-        if nextData:
+        if nextData and not self.audio.endFlag:
             self.audio.pushData(nextData)
         else:
             self.state = FloppyPlayer.State.END
@@ -77,7 +77,7 @@ class FloppyPlayer:
     def handleEnd(self):
         print("-> END")
         self.drive.reset()
-        if  self.audio.buffer.qsize() > 0:
+        if  self.audio.pipelineAlive():
             self.lcd.lowerLine = [
                 str(datetime.now() - self.startTime).split(".")[0][3:] + 
                 "        ""B:" + 

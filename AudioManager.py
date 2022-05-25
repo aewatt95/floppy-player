@@ -6,6 +6,7 @@ import time
 import json
 
 AUDIO_DEVICE = "pulse"
+zeros = bytearray(9216)
 
 class AudioManager(threading.Thread):
     def __init__(self):
@@ -41,12 +42,6 @@ class AudioManager(threading.Thread):
             self.start()
 
     def startAudioPipeline(self):
-        # In my personal setup, multiple network attached pulseserver are running over the network.
-        # The unit running this code does not provide audio output by itself.
-        # Restarting pulseaudio ensures correct detection of network attached pulseservers
-        # TODO: Add general audio server config 
-        subprocess.run("systemctl restart pulseaudio.service".split(" "))
-        subprocess.run("pactl set-default-sink 1".split(" "))
         self.audioProcess = (ffmpeg
             .input("pipe:")
             .filter("dynaudnorm", p=0.71, m=100, s=12, g=15)
@@ -55,16 +50,20 @@ class AudioManager(threading.Thread):
         )
         self.playerProcess = subprocess.Popen(f"aplay -q -t wav --fatal-errors -D {AUDIO_DEVICE}".split(" "), 
             stdin=self.audioProcess.stdout)
-
     def run(self):
         while not self.endFlag:
             if(self.pipelineAlive()):
                 if(self.buffer.qsize() > 0):
-                    self.audioProcess.stdin.write(self.buffer.get())
+                    data = self.buffer.get()
+                    self.audioProcess.stdin.write(data)
+                    # If stdin is not closed on stream end, the buffer is read to the end and ffmpeg crashed with buffer exhausted message
+                    if data == zeros:
+                        self.endFlag = True
                 else:
                     time.sleep(1)
             else:
                 self.endFlag = True
+        self.audioProcess.stdin.close()
 
     def killAudioPipeline(self):
         try:
