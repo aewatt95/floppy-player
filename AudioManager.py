@@ -6,6 +6,7 @@ import time
 import json
 
 AUDIO_DEVICE = "pulse"
+MINIMUM_BUFFER = 5
 zeros = bytearray(9216)
 
 class AudioManager(threading.Thread):
@@ -36,8 +37,10 @@ class AudioManager(threading.Thread):
 
     def pushData(self, data):
         print("Received Data")
+        if data == zeros:
+            self.endFlag = True
         self.buffer.put(data)
-        if not self.playFlag:
+        if not self.playFlag and self.buffer.qsize() > MINIMUM_BUFFER:
             self.playFlag = True
             self.start()
 
@@ -48,22 +51,18 @@ class AudioManager(threading.Thread):
             .output("pipe:", format="wav")
             .run_async(pipe_stdin=True, pipe_stdout=True, pipe_stderr=False)
         )
-        self.playerProcess = subprocess.Popen(f"aplay -q -t wav --fatal-errors -D {AUDIO_DEVICE}".split(" "), 
+        self.playerProcess = subprocess.Popen(f"aplay -q -t wav --fatal-errors -D {AUDIO_DEVICE}".split(" "),
             stdin=self.audioProcess.stdout)
+
     def run(self):
-        while not self.endFlag:
-            if(self.pipelineAlive()):
-                if(self.buffer.qsize() > 0):
-                    data = self.buffer.get()
-                    self.audioProcess.stdin.write(data)
-                    # If stdin is not closed on stream end, the buffer is read to the end and ffmpeg crashed with buffer exhausted message
-                    if data == zeros:
-                        self.endFlag = True
-                else:
-                    time.sleep(1)
+        while self.pipelineAlive():
+            if(self.buffer.qsize() > 0) and not self.audioProcess.stdin.closed:
+                self.audioProcess.stdin.write(self.buffer.get())
             else:
-                self.endFlag = True
-        self.audioProcess.stdin.close()
+                time.sleep(1)
+                if self.endFlag:
+                    # If stdin is not closed on stream end, the buffer is read to the end and ffmpeg crashed with buffer exhausted message
+                    self.audioProcess.stdin.close()
 
     def killAudioPipeline(self):
         try:
