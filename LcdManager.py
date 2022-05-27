@@ -15,7 +15,7 @@ PIN_RW = 3
 PIN_ENABLE = 7
 PIN_DATA = [12, 11, 8, 10]
 
-# Do not change unless you want to change the update routine as well 
+# Do not change unless you want to change the update routine as well
 LCD_COLUMNS = 16
 LCD_ROWS = 2
 LCD_DOTSIZE = 8
@@ -28,6 +28,8 @@ class LCDManager(threading.Thread):
         self.offset = 0
         self.currentIndex = 0
         self.startStopTimer = time.time()
+        self.previousUpperLine = ""
+        self.previousLowerLine = ""
 
         self.lcd = CharLCD(pin_rs=PIN_RESET, pin_rw=PIN_RW, pin_e=PIN_ENABLE, pins_data=PIN_DATA,
               numbering_mode=GPIO.BOARD,
@@ -49,27 +51,37 @@ class LCDManager(threading.Thread):
         self.offset = 0
         self.currentIndex = 0
 
-
-    def update(self):
+    def writeToDisplay(self):
         currentUpperLine = self.calcRowText(self.upperLine[self.currentIndex], self.offset)
         currentLowerLine = self.calcRowText(self.lowerLine[0])
-        self.lcd.cursor_pos = (0, 0)
-        self.lcd.write_string(currentUpperLine)
-        self.lcd.cursor_pos = (1, 0)
-        self.lcd.write_string(currentLowerLine)
+
+        if currentUpperLine != self.previousUpperLine:
+            self.lcd.cursor_pos = (0, 0)
+            self.lcd.write_string(currentUpperLine)
+        if currentLowerLine != self.previousLowerLine:
+            self.lcd.cursor_pos = (1, 0)
+            self.lcd.write_string(currentLowerLine)
+
+        self.previousUpperLine = currentUpperLine
+        self.previousLowerLine = currentLowerLine
+
+    def update(self):
+        self.writeToDisplay()
+
         if time.time() - self.startStopTimer > START_STOP_DELAY:
             self.offset += 1
             if self.offset >= len(self.upperLine[self.currentIndex]) - (LCD_COLUMNS-1):
                 self.offset = 0
-            
+
             if self.offset == 0 or self.offset == len(self.upperLine[self.currentIndex]) - LCD_COLUMNS:
                 self.startStopTimer = time.time()
                 if self.offset == 0:
                     self.currentIndex += 1
                     if self.currentIndex == len(self.upperLine):
                         self.currentIndex = 0
-                
+
     def run(self):
         while True:
             # TODO: Add refresh delay.
             self.update()
+            time.sleep(0.5)
