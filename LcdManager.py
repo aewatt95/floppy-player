@@ -82,6 +82,5 @@ class LCDManager(threading.Thread):
 
     def run(self):
         while True:
-            # TODO: Add refresh delay.
             self.update()
-            time.sleep(0.5)
+            time.sleep(REFRESH_DELAY)
