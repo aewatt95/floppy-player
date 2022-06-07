@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+    <head>
+        <!-- Bootstrap CSS -->
+            <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container" style="padding:10px">
+                <div class="card mb-3 h-100">
+                    <div class="card-header">Enter URL and press Download</div>
+                    <div class="card-body">
+                        <form method="POST" id=startDownload action="startDownload" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="youtubeUrl">Youtube Link</label>
+                                <input name="url" type="url" class="form-control" id="youtubeUrl" aria-describedby="youtubeUrlHelp" placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+                                <small id="youtubeUrlHelp" class="form-text text-muted">The Link to the Video with music you want to burn to the floppy</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="file">MP3 upload</label>
+                                <input name="file" type="file" class="form-control" id="file" />
+                                <small id="fileHelp" class="form-text text-muted">Upload an MP3 file instead of using a YouTube Link</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="title">Song title</label>
+                                <input name="title"type="text" class="form-control" id="title" aria-describedby="titleHelp" placeholder="Never gonna give you up">
+                                <small id="titleHelp" class="form-text text-muted">Title of the song</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="artist">Song artist</label>
+                                <input name="artist" type="text" class="form-control" id="artist" aria-describedby="artistHelp" placeholder="Rick Astley">
+                                <small id="artistHelp" class="form-text text-muted">Artist of the song</small>
+                            </div>
+                            <button id=submitButton type="submit" class="btn btn-primary">Start</button>
+                        </form>
+                    </div>
+                </div>
+        </div>
+    </body>
+    <script>
+    const btn = document.getElementById('submitButton');
+    btn.addEventListener('click', function handleClick() {
+        btn.textContent = 'Please wait...';
+        btn.disabled = true;
+        document.getElementById("startDownload").submit();
+    });
+    </script>
+
+</html>
